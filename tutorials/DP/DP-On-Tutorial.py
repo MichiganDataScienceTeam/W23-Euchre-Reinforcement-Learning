@@ -4,9 +4,9 @@ Gridworld RL
 Problem:
 Try and find the optimal policy to navigate towards
 the goal state:
-    . . . .     Let . = 0
-    . . X .         X = 1
-    . . G X         G = 2
+    . . . .
+    . . X .
+    . . G X
     . X . .
 
 The locations as numbers are:
