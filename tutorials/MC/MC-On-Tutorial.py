@@ -93,11 +93,14 @@ class GridWorld:
         self.num_steps = 0
         self.curr_state = random.choice([0,4,7,9,14])# not exhaustive, on purpose!!
 
-    def generate_episode(self,pi,q_func):
+    def generate_episode(self,pi):
         '''
         pi: valid policy, like one returned from init_e_soft_policy
 
-        Returns: list of tuples (state, action, rewards)
+        Use pi to navigate through the world.
+        Update self.curr_state and self.num_steps
+
+        Returns: list of tuples (state, action, reward)
         '''
         episode = []
         
@@ -109,7 +112,7 @@ class GridWorld:
         '''
         list_probs: list of probabilites that add up to 1
 
-        returns, index corresponding to which bin a random number fell into
+        Returns: index corresponding to which bin a random number fell into
         '''
         length = len(list_probs)
         # cummulative array of probabilites
@@ -125,6 +128,10 @@ class GridWorld:
 ###########
 
 def get_return(partial_episode,gamma):
+    '''
+    partial_episode: list of (s_i, a_i, r_i+1) tuples
+    gamma: discount factor, between 0 and 1
+    '''
     # TODO
     return
 
