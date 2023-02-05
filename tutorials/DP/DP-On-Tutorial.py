@@ -199,13 +199,20 @@ def policy_evaluation(value_map, policy, rewards_model, transition_matrix, theta
 
         for s in non_terminal_states:
             # temp store value of V(s)
-            
+            v = value_map[s]
             # calculate new value for V(s)
-            
+            value = 0
+            for s_prime in range(num_states):
+                for a in actions:
+                    reward_from_action = rewards_model.loc[s, a]
+                    policy_action_prob = policy.loc[s,a]
+                    transition_prob = transition_matrix[s_prime].loc[(s,a)]
+                    overall_prob = policy_action_prob * transition_prob
+                    value += overall_prob * (reward_from_action + gamma * value_map[s_prime])
             # save that value
-            
-            # change delta
-            pass
+            value_map[s] = value
+            # delta value
+            delta = max(delta, abs(v - value))
         
         if delta < theta:
             break
@@ -239,6 +246,7 @@ if __name__=="__main__":
     grid = initialize_grid1() # Exists only to support print statements
     rewards_model = init_reward_map() # Never changes
     transition_matrix = init_transition_dynamics() # Never changes
+    print(transition_matrix)
     theta = 1e-4
 
     # --

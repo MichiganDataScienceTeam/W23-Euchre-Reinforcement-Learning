@@ -103,16 +103,17 @@ class GridWorld:
         Returns: list of tuples (state, action, reward)
         '''
         episode = []
-        
-        # TODO
-        # while loop: there are 2 conditions (hint)
+        while self.curr_state != self.terminal_state and self.num_steps < self.max_steps:
             # get action according to pi
-
+            action = self._pick_action(pi.loc[self.curr_state,:].values)
             # find next_state based on action
-
+            possible_next_spaces = self.get_neighbors(self.curr_state)
+            next_state = possible_next_spaces[action]
             # add tuple to episode
-            
+            episode.append((self.curr_state,self.actions[action],self.rewards[next_state]))
             # actually change gridworld with action and increment num_steps
+            self.curr_state = next_state
+            self.num_steps += 1
 
         return episode
 
@@ -143,8 +144,11 @@ def get_return(partial_episode,gamma):
 
     gamma: discount factor, between 0 and 1
     '''
-    # TODO
-    return
+    returns = 0
+    for i in range(len(partial_episode)):
+        _,_,this_return = partial_episode[i]
+        returns += pow(gamma,i)*this_return
+    return returns
 
 def init_e_soft_policy(policy,epsilon):
     '''
@@ -152,12 +156,17 @@ def init_e_soft_policy(policy,epsilon):
     epsilon: number between 0 and 1 exclusive
 
     for each state
-        randomly choose a legal action and assigning it probability 1-epsilon + (epsilon / num actions),
+        randomly choose a legal action and assing it probability 1-epsilon + (epsilon / num actions),
         give the other options (epsilon / num actions)
 
     Returns: Policy as changed by the algorithm described above
     '''
-    # TODO
+    for ind in policy.index:
+        random_choice = random.choice(policy.columns)
+        other_choices = [c for c in policy.columns if c != random_choice]
+        policy.loc[ind,random_choice] = 1 - epsilon + (epsilon / len(other_choices))
+        for o in other_choices:
+            policy.loc[ind,o] = epsilon / len(other_choices)
     
     return policy
 
@@ -169,12 +178,17 @@ def update_policy(q_func, policy, states_seen, epsilon):
 
     Returns: Policy updated in accordance with step (c) in MC-Control-OnPolicy-epsilon-soft.jpg
     '''
-    # TODO
-
+    for state in states_seen:
+        a_star = q_func.loc[state,:].idxmax()
+        for direction in policy.columns:
+            if direction == a_star:
+                policy.loc[state,direction] = 1 - epsilon + (epsilon/len(policy.columns))
+            else:
+                policy.loc[state,direction] = (epsilon/len(policy.columns))
     return policy
 
 
-def on_policy_first_visit_mc(env,num_iter,epsilon):
+def on_policy_first_visit_mc(env:GridWorld,num_iter,epsilon):
     '''
     env: GridWorld object
     num_iter: number >= 1
@@ -189,16 +203,30 @@ def on_policy_first_visit_mc(env,num_iter,epsilon):
     policy = init_e_soft_policy(policy, epsilon)
 
     for i in range(num_iter):
-        # TODO
-        pass
+        # generate episode using pi
+        env.reset_env()
+        episode = env.generate_episode(policy)
+        # for each s,a pair in episode
+        s_a_seen = {}
+        states_seen = set()
+        for step_ind, step in enumerate(episode):
+            state, action, _ = step
+            states_seen.add(state)
+            if (state,action) not in s_a_seen.keys():
+                g = get_return(episode[step_ind:],env.gamma)
+                s_a_seen[(state,action)] = g
 
+                returns[(state,action)].append(s_a_seen[(state,action)])
+                q_func.loc[state,action] = np.mean(returns[(state,action)])
+        # part c
+        policy = update_policy(q_func,policy,states_seen,epsilon)
     return policy, q_func
 
 if __name__=="__main__":
-    max_steps = 400 # HAVE to guranteee episodic tasks
+    max_steps = 100 # HAVE to guranteee episodic tasks
     gamma = 0.98
     env = GridWorld(max_steps,gamma)
-    num_iterations = 50
+    num_iterations = 500
     epsilon = 0.5
     policy,q_func = on_policy_first_visit_mc(env,num_iterations,epsilon)
 
