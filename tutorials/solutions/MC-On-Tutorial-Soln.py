@@ -43,7 +43,7 @@ class GridWorld:
         '''
         Helpful function. Important to understand output
         Returns: list of neighboring states in order [n,e,s,w]. elem in range [0, self.num_states)
-        
+
 
         If in terminal state or blocked state, you don't transition \n
         If taking a step takes you off the edge, you map back to yourself in that direction \n 
@@ -172,7 +172,7 @@ def init_e_soft_policy(policy,epsilon):
 
 def update_policy(q_func, policy, states_seen, epsilon):
     '''
-    q_func,policy: Pandas dataframes
+    q_func, policy: Pandas dataframes
     states_seen: set
     epsilon: number between 0 and 1 exclusive
 
@@ -182,9 +182,9 @@ def update_policy(q_func, policy, states_seen, epsilon):
         a_star = q_func.loc[state,:].idxmax()
         for direction in policy.columns:
             if direction == a_star:
-                policy.loc[state,direction] = 1 - epsilon + (epsilon/len(policy.columns))
+                policy.loc[state, direction] = 1 - epsilon + (epsilon/len(policy.columns))
             else:
-                policy.loc[state,direction] = (epsilon/len(policy.columns))
+                policy.loc[state, direction] = (epsilon/len(policy.columns))
     return policy
 
 

@@ -29,6 +29,7 @@ class GridWorld:
 
     def initialize_grid1(self):
         '''
+        Truth of Environment
         Create a szxsz grid as follows
         . . . .     Let . = 0
         . . X .         X = 1
@@ -43,8 +44,10 @@ class GridWorld:
 
     def get_neighbors(self,state):
         '''
-        returns list of neighboring states in order [n,e,s,w]
-        
+        Helpful function. Important to understand output
+        Returns: list of neighboring states in order [n,e,s,w]. elem in range [0, self.num_states)
+
+
         If in terminal state or blocked state, you don't transition \n
         If taking a step takes you off the edge, you map back to yourself in that direction \n 
         If taking a step takes you to a blocked state, you map back to yourself in that direction
@@ -90,6 +93,12 @@ class GridWorld:
         return
 
     def reset_env(self):
+        """
+        Resets environment by setting number of steps taken to zero,
+        and sets the beginning state to one of a few options
+
+        Returns: integer representing the current grid square of the agent
+        """
         self.num_steps = 0
         self.curr_state = random.choice([0,4,7,9,14])# not exhaustive, on purpose!!
         return self.curr_state
@@ -98,7 +107,7 @@ class GridWorld:
         '''
         list_probs: list of probabilites that add up to 1
 
-        returns, index corresponding to which bin a random number fell into
+        Returns: direction from self.actions
         '''
         length = len(list_probs)
         # cummulative array of probabilites
@@ -107,14 +116,16 @@ class GridWorld:
         choice = random.random()
         for i in range(length):
             if choice <= cu_list[i]:
-                return i
+                return self.actions[i]
         # sometimes runs if we have a rounding error, like the last elem in cu_list is 0.999998, and choice = 0.999999
         print('unsafe pick_action')
         return -1
 
     def take_action(self,action):
         '''
-        action: int in range [0,len(env.actions)-1]
+        action: string from env.actions
+
+        Hint: self.actions.index(action) may be helpful
 
         Returns:
             reward: the reward we get for being in next_state
@@ -136,33 +147,40 @@ def init_e_soft_policy(policy,epsilon):
     epsilon: number between 0 and 1 exclusive
 
     for each state
-        randomly choose a legal action and assing it probability 1-epsilon,
-        equally distribute epsilon probability to the rest of the options
+        randomly choose a legal action and assing it probability 1-epsilon + (epsilon / num actions),
+        give the other options (epsilon / num actions)
 
     Returns: Policy as changed by the algorithm described above
     '''
     for ind in policy.index:
         random_choice = random.choice(policy.columns)
         other_choices = [c for c in policy.columns if c != random_choice]
-        policy.loc[ind,random_choice] = 1 - epsilon
+        policy.loc[ind,random_choice] = 1 - epsilon + (epsilon / len(other_choices))
         for o in other_choices:
             policy.loc[ind,o] = epsilon / len(other_choices)
     
     return policy
 
 def update_policy(q_func, policy, states_seen, epsilon):
+    '''
+    q_func, policy: Pandas dataframes
+    states_seen: set
+    epsilon: number between 0 and 1 exclusive
+
+    Returns: Policy updated in accordance with step (c) in MC-Control-OnPolicy-epsilon-soft.jpg
+    '''
     for state in states_seen:
         a_star = q_func.loc[state,:].idxmax()
-        for dir in policy.columns:
-            if dir == a_star:
-                policy.loc[state,dir] = 1 - epsilon + (epsilon/len(policy.columns))
+        for direction in policy.columns:
+            if direction == a_star:
+                policy.loc[state, direction] = 1 - epsilon + (epsilon/len(policy.columns))
             else:
-                policy.loc[state,dir] = (epsilon/len(policy.columns))
+                policy.loc[state, direction] = (epsilon/len(policy.columns))
     return policy
 
 def on_policy_td_control(env:GridWorld,num_episodes,epsilon,alpha,gamma):
-    q_func = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=[i for i in range(len(env.actions))])
-    policy = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=[i for i in range(len(env.actions))])
+    q_func = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
+    policy = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
     policy = init_e_soft_policy(policy, epsilon)
 
     # TODO implement algorithm
@@ -177,9 +195,9 @@ if __name__=="__main__":
     env = GridWorld(max_steps)
     
     num_iterations = 600
-    gamma = 0
-    epsilon = 0
-    alpha = 0
+    gamma = 0       # what to do?
+    epsilon = 0     # hmmm
+    alpha = 0       # pick me!!
     policy,q_func = on_policy_td_control(env,num_iterations,epsilon,alpha)
 
     # NOTE: We have high change to circle back to same place. How will gamma and alpha values effect our convergence?
