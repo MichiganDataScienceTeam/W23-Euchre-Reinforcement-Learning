@@ -132,10 +132,17 @@ class GridWorld:
             next_state: the state that taking action from self.curr_state takes us into. Then update self.curr_state
             done: Bool indicating if self.curr_state is in terminating position or if number steps greater than max_steps
         '''
-        # TODO implement this function
-        reward = 0
-        next_state = -1
-        done = True
+        possible_next_spaces = self.get_neighbors(self.curr_state)
+        action_index = self.actions.index(action)
+        next_state = possible_next_spaces[action_index]
+
+        self.curr_state = next_state
+        self.num_steps += 1
+        reward = self.rewards[next_state]
+
+        done = False
+        if self.curr_state == 10 or self.num_steps > self.max_steps:
+            done = True
 
         return reward, next_state, done
 
