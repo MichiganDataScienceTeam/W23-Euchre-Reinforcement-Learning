@@ -16,8 +16,8 @@ class EuchreGame(object):
         self.num_players = 4
         self.payoffs = [0 for _ in range(self.num_players)]
 
-        self.custom_deck = config['custom_deck']
-        self.custom_dealer = config['custom_dealer_id']
+        self.custom_deck = config.get('custom_deck')
+        self.custom_dealer = config.get('custom_dealer_id')
 
     def init_game(self):
         self.payoffs = [0 for _ in range(self.num_players)]
@@ -50,6 +50,7 @@ class EuchreGame(object):
         self.trump = None
         self.lead_suit = None
         self.turned_down = None
+        self.discarded_card = None
         self.played = [[] for _ in range(self.num_players)]
         
 
@@ -71,6 +72,7 @@ class EuchreGame(object):
         
         state['flipped'] = self.flipped_card.get_index()
         state['flipped_choice'] = self.flipped_choice
+        state['discarded_card'] = self.discarded_card
 
         state['center'] = self.center
         state['order'] = self.order
@@ -126,6 +128,7 @@ class EuchreGame(object):
                 remove_index = index
                 break
         card = player.hand.pop(remove_index)
+        self.discarded_card = card.get_index()
         self.current_player = self._increment_player(self.current_player)
 
     def _play_card(self, action):
@@ -155,6 +158,7 @@ class EuchreGame(object):
 
     def _perform_call(self, suit):
         self.trump = suit
+        self.calling_player = self.current_player
         self.current_player = self._increment_player(self.dealer_player_id)
 
     def _perform_pass(self):
