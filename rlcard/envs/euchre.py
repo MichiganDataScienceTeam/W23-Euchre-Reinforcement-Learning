@@ -47,6 +47,13 @@ class EuchreEnv(Env):
         9. Left Opponents Play History      5x  4-1 Binary Feature and 1 numerical feature  | 25
         10. Right Opponents Play History    5x  4-1 Binary Feature and 1 numerical feature  | 25
                                                                                     Total:    173
+
+        Notes:
+        Remove center cards
+        Instead append center cards to respective player history
+        Perhaps reduce size of plyaer histories by 1 each because end of game redundancy
+        Possibly add discraded card to obs structure
+        Perhaps sub -1 in for 0 in null cases
         '''
 
         obs = []

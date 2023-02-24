@@ -1,0 +1,7 @@
+Tom's questions:
+
+Just to be sure, cards are represented as two char strings (suitchar, rankchar)?
+
+
+
+in judger.py -> judge_hand: is "euching taken into account?
