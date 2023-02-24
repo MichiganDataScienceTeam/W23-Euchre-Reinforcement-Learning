@@ -136,7 +136,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_episodes',
         type=int,
-        default=50000,
+        default=5000,
     )
     parser.add_argument(
         '--num_eval_games',
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--log_dir',
         type=str,
-        default='experiments/euchre_dqn_v2.1_result/',
+        default='experiments/euchre_dqn_v2.2_result/',
     )
 
     args = parser.parse_args()

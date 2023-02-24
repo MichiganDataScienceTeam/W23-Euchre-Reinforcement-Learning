@@ -84,10 +84,9 @@ class EuchreEnv(Env):
         
         '''7'''
         # Don't need this because it is already in the history
-        for e in state['center']:
-            pass
-            # obs.append(vec(e.get_index()))
-        no_cards = np.zeros(5*(4-len(state['center'])))-1
+        # for e in state['center']:
+        #     obs.append(vec(e.get_index()))
+        # no_cards = np.zeros(5*(4-len(state['center'])))-1
         # obs.append( no_cards.tolist() )
         '''8'''
         for e in state['hand']:

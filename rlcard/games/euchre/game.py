@@ -158,6 +158,7 @@ class EuchreGame(object):
 
     def _perform_call(self, suit):
         self.trump = suit
+        self.calling_player = self.current_player
         self.current_player = self._increment_player(self.dealer_player_id)
 
     def _perform_pass(self):
