@@ -17,9 +17,7 @@ class EuchreEnv(Env):
 
     def _extract_state(self, state):
         """Extract usable information from state."""
-
         def vec(s):
-            """Encode list of cards s"""
             # Return 'list' object
             suit = {"C":[1,0,0,0], "D":[0,1,0,0], "H":[0,0,1,0], "S":[0,0,0,1]}
             rank = {"9":9, "T":10, "J":11, "Q":12, "K":13, "A":14}
@@ -32,9 +30,76 @@ class EuchreEnv(Env):
         state['legal_actions'] = self._get_legal_actions()
         state['raw_legal_actions'] = self.game.get_legal_actions()
 
-        # TODO write obs
-        state['obs'] = []
-        return state
+        '''
+        structure of obs 
+        suit = 4-1 Binary Feature | rank = 1 numerical Feature  
+        1. Dealer pos relative to Agent:        4-1 Binary Feature                          | 4
+        2. suit of trump:                       4-1 Binary Feature                          | 4
+        3. Trump caller pos relative to Agent   4-1 Binary Feature                          | 4
+        4. Flipped Card                         4-1 Binary Feature and 1 numerical feature  | 5
+        5. What happened to the flipped card    2-1 Binary Feature                          | 2
+            Avaliable = [0,0]                                                               |
+        6. The led suit for the hand            4-1 Binary Feature                          | 4
+        7. Center Cards                     4x  4-1 Binary Feature and 1 numerical feature  | 20
+        8. Agents Hand                      6x  4-1 Binary Feature and 1 numerical feature  | 30
+        9. Agents Play History              5x  4-1 Binary Feature and 1 numerical feature  | 25
+        8. Partners Play History            5x  4-1 Binary Feature and 1 numerical feature  | 25
+        9. Left Opponents Play History      5x  4-1 Binary Feature and 1 numerical feature  | 25
+        10. Right Opponents Play History    5x  4-1 Binary Feature and 1 numerical feature  | 25
+                                                                                    Total:    173
+        '''
+
+        obs = []
+        curr_player_num = state['current_actor']
+        # Save which player relative to you is the dealer
+        '''1'''
+        obs.append( self._orderShuffler(curr_player_num,state['dealer_actor']) )
+
+        '''2 and 3'''
+        if state['trump'] is not None:
+            obs.append( vec(state['trump']) )
+            obs.append( self._orderShuffler(curr_player_num,state['calling_actor']) )
+        else: # No Trump called
+            obs.append( [0,0,0,0] )
+            obs.append( [0,0,0,0] )
+        
+        '''4'''
+        obs.append( vec(state['flipped']) )
+        '''5'''
+        obs.append( state['flipped_choice'].tolist() )
+        '''6'''
+        if state['lead_suit'] is not None:
+            obs.append( vec(state['lead_suit']) )
+        else:
+            obs.append( [0,0,0,0] )
+        
+        '''7'''
+        # TODO: Fix this. Done? Count seems right 20 count
+        for e in state['center']:
+            obs.append(vec(e.get_index()))
+        no_cards = np.zeros(5*(4-len(state['center'])))-1
+        obs.append( no_cards.tolist() )
+        '''8'''
+        # TODO: Fix this. Done? Count seems right 30 count
+        for e in state['hand']:
+            obs.append(vec(e))
+        no_cards = np.zeros(5*(6-len(state['hand'])))-1
+        obs.append( no_cards.tolist() )
+        '''
+        Need to build 3 hands for each other player
+        Note, their hands will grow as mine shrinks
+        Because their 'hand' represents which cards I've seen them play
+        '''
+        '''9 10 11'''
+        for i in range(0,4):
+            rel_player_num = (i - curr_player_num + 4) % 4
+            for e in state['played'][rel_player_num]:
+                obs.append(vec(e))
+            no_cards = np.zeros(5*(5-len(state['played'][rel_player_num])))-1
+            obs.append( no_cards.tolist() )
+
+        state['obs'] = np.hstack(obs)
+        return state 
 
     def _orderShuffler(self,curr_player_num, player_num):
             '''
