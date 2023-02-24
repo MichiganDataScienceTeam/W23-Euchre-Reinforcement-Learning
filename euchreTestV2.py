@@ -1,9 +1,10 @@
-import rlcard
+# import rlcard
+from rlcard import make
 from rlcard import models
 from rlcard.models.euchre_rule_models import EuchreSimpleRuleAgent
 from rlcard.agents.human_agents.euchre_human_agent import EuchreHumanAgent
 
-a = EuchreHumanAgent()
+a = EuchreSimpleRuleAgent()
 b = EuchreSimpleRuleAgent()
 c = EuchreSimpleRuleAgent()
 d = EuchreSimpleRuleAgent()
@@ -22,7 +23,7 @@ config = {
         'custom_dealer_id': None
         }
 
-euchre_game = rlcard.make("euchre", config=config)
+euchre_game = make("euchre", config=config)
 euchre_game.set_agents(agents)
 
 trajectories, payoffs = euchre_game.run(is_training=False)

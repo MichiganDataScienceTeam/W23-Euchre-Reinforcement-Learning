@@ -11,7 +11,7 @@ class EuchreEnv(Env):
         self.name = "euchre"
 
         self.actions = ACTION_LIST
-        self.state_shape = [173]
+        self.state_shape = [158]
         super().__init__(config)
     
 
@@ -38,22 +38,19 @@ class EuchreEnv(Env):
         3. Trump caller pos relative to Agent   4-1 Binary Feature                          | 4
         4. Flipped Card                         4-1 Binary Feature and 1 numerical feature  | 5
         5. What happened to the flipped card    2-1 Binary Feature                          | 2
-            Avaliable = [0,0]                                                               |
+        5a. What card was discarded if Dealer   4-1 Binary Feature and 1 numerical feature  | 5
         6. The led suit for the hand            4-1 Binary Feature                          | 4
-        7. Center Cards                     4x  4-1 Binary Feature and 1 numerical feature  | 20
+        7. Center Cards           (removed) 4x  4-1 Binary Feature and 1 numerical feature  | (20)
         8. Agents Hand                      6x  4-1 Binary Feature and 1 numerical feature  | 30
         9. Agents Play History              5x  4-1 Binary Feature and 1 numerical feature  | 25
         8. Partners Play History            5x  4-1 Binary Feature and 1 numerical feature  | 25
         9. Left Opponents Play History      5x  4-1 Binary Feature and 1 numerical feature  | 25
         10. Right Opponents Play History    5x  4-1 Binary Feature and 1 numerical feature  | 25
-                                                                                    Total:    173
+                                                                                    Total:    158
 
         Notes:
-        Remove center cards
-        Instead append center cards to respective player history
-        Perhaps reduce size of plyaer histories by 1 each because end of game redundancy
+        Perhaps reduce size of player histories by 1 each because end of game redundancy
         Possibly add discraded card to obs structure
-        Perhaps sub -1 in for 0 in null cases
         '''
 
         obs = []
@@ -67,13 +64,18 @@ class EuchreEnv(Env):
             obs.append( vec(state['trump']) )
             obs.append( self._orderShuffler(curr_player_num,state['calling_actor']) )
         else: # No Trump called
-            obs.append( [-1,-1,-1,-1] )
-            obs.append( [-1,-1,-1,-1] )
+            obs.append( [-1, -1, -1, -1] )
+            obs.append( [-1, -1, -1, -1] )
         
         '''4'''
         obs.append( vec(state['flipped']) )
         '''5'''
         obs.append( state['flipped_choice'].tolist() )
+        '''5a'''
+        if state['discarded_card'] is not None and state['dealer_actor'] == curr_player_num:
+            obs.append( vec(state['discarded_card']) )
+        else:
+            obs.append([-1, -1, -1, -1, -1])
         '''6'''
         if state['lead_suit'] is not None:
             obs.append( vec(state['lead_suit']) )
@@ -81,13 +83,13 @@ class EuchreEnv(Env):
             obs.append( [-1,-1,-1,-1] )
         
         '''7'''
-        # TODO: Fix this. Done? Count seems right 20 count
+        # Don't need this because it is already in the history
         for e in state['center']:
-            obs.append(vec(e.get_index()))
+            pass
+            # obs.append(vec(e.get_index()))
         no_cards = np.zeros(5*(4-len(state['center'])))-1
-        obs.append( no_cards.tolist() )
+        # obs.append( no_cards.tolist() )
         '''8'''
-        # TODO: Fix this. Done? Count seems right 30 count
         for e in state['hand']:
             obs.append(vec(e))
         no_cards = np.zeros(5*(6-len(state['hand'])))-1
@@ -106,6 +108,7 @@ class EuchreEnv(Env):
             obs.append( no_cards.tolist() )
 
         state['obs'] = np.hstack(obs)
+
         return state 
 
     def _orderShuffler(self,curr_player_num, player_num):

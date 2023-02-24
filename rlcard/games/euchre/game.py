@@ -50,6 +50,7 @@ class EuchreGame(object):
         self.trump = None
         self.lead_suit = None
         self.turned_down = None
+        self.discarded_card = None
         self.played = [[] for _ in range(self.num_players)]
         
 
@@ -71,6 +72,7 @@ class EuchreGame(object):
         
         state['flipped'] = self.flipped_card.get_index()
         state['flipped_choice'] = self.flipped_choice
+        state['discarded_card'] = self.discarded_card
 
         state['center'] = self.center
         state['order'] = self.order
@@ -126,6 +128,7 @@ class EuchreGame(object):
                 remove_index = index
                 break
         card = player.hand.pop(remove_index)
+        self.discarded_card = card.get_index()
         self.current_player = self._increment_player(self.current_player)
 
     def _play_card(self, action):
