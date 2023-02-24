@@ -16,8 +16,8 @@ class EuchreGame(object):
         self.num_players = 4
         self.payoffs = [0 for _ in range(self.num_players)]
 
-        self.custom_deck = config['custom_deck']
-        self.custom_dealer = config['custom_dealer_id']
+        self.custom_deck = config.get('custom_deck')
+        self.custom_dealer = config.get('custom_dealer_id')
 
     def init_game(self):
         self.payoffs = [0 for _ in range(self.num_players)]

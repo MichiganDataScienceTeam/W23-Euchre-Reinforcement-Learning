@@ -67,8 +67,8 @@ class EuchreEnv(Env):
             obs.append( vec(state['trump']) )
             obs.append( self._orderShuffler(curr_player_num,state['calling_actor']) )
         else: # No Trump called
-            obs.append( [0,0,0,0] )
-            obs.append( [0,0,0,0] )
+            obs.append( [-1,-1,-1,-1] )
+            obs.append( [-1,-1,-1,-1] )
         
         '''4'''
         obs.append( vec(state['flipped']) )
@@ -78,7 +78,7 @@ class EuchreEnv(Env):
         if state['lead_suit'] is not None:
             obs.append( vec(state['lead_suit']) )
         else:
-            obs.append( [0,0,0,0] )
+            obs.append( [-1,-1,-1,-1] )
         
         '''7'''
         # TODO: Fix this. Done? Count seems right 20 count
