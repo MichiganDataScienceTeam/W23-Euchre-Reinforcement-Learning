@@ -9,3 +9,4 @@ numpy==1.23.0
 pandas==1.4.4
 torch==1.13.1
 termcolor==2.2.0
+matplotlib==3.5.1
