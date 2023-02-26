@@ -13,7 +13,7 @@ class EuchreEnv(Env):
         self.actions = ACTION_LIST
         self.state_shape = [158]
         super().__init__(config)
-    
+
 
     def _extract_state(self, state):
         """Extract usable information from state."""
@@ -66,7 +66,7 @@ class EuchreEnv(Env):
         else: # No Trump called
             obs.append( [-1, -1, -1, -1] )
             obs.append( [-1, -1, -1, -1] )
-        
+
         '''4'''
         obs.append( vec(state['flipped']) )
         '''5'''
@@ -81,7 +81,7 @@ class EuchreEnv(Env):
             obs.append( vec(state['lead_suit']) )
         else:
             obs.append( [-1,-1,-1,-1] )
-        
+
         '''7'''
         # Don't need this because it is already in the history
         # for e in state['center']:
@@ -108,7 +108,7 @@ class EuchreEnv(Env):
 
         state['obs'] = np.hstack(obs)
 
-        return state 
+        return state
 
     def _orderShuffler(self,curr_player_num, player_num):
             '''
