@@ -86,12 +86,12 @@ class EuchreEnv(Env):
         # Don't need this because it is already in the history
         # for e in state['center']:
         #     obs.append(vec(e.get_index()))
-        # no_cards = np.zeros(5*(4-len(state['center'])))-1
+        # no_cards = np.zeros(5*(4-len(state['center']))) - 1
         # obs.append( no_cards.tolist() )
         '''8'''
         for e in state['hand']:
             obs.append(vec(e))
-        no_cards = np.zeros(5*(6-len(state['hand'])))-1
+        no_cards = np.zeros(5*(6-len(state['hand']))) - 1
         obs.append( no_cards.tolist() )
         '''
         Need to build 3 hands for each other player
@@ -103,7 +103,7 @@ class EuchreEnv(Env):
             rel_player_num = (i - curr_player_num + 4) % 4
             for e in state['played'][rel_player_num]:
                 obs.append(vec(e))
-            no_cards = np.zeros(5*(5-len(state['played'][rel_player_num])))-1
+            no_cards = np.zeros(5*(5-len(state['played'][rel_player_num]))) - 1
             obs.append( no_cards.tolist() )
 
         state['obs'] = np.hstack(obs)
