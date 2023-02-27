@@ -39,8 +39,8 @@ class EuchreGame(object):
 
         self.flipped_card = self.dealer.flip_top_card()
         self.calling_player = -1
-        # Options: {Avaliable=0,TurnedDown=1,PickedUp=2}
-        self.flipped_choice = np.zeros(2)
+        # Options: {Avaliable=[1,0,0],TurnedDown=[0,1,0],PickedUp=[0,0,1]}
+        self.flipped_choice = np.zeros(3)
         self.history = [] # populate with game states
         self.center = [] 
         self.order = []
@@ -164,7 +164,7 @@ class EuchreGame(object):
     def _perform_pass(self):
         if self.current_player == self.dealer_player_id:
             self.turned_down = self.flipped_card.suit
-            self.flipped_choice[0] = 1
+            self.flipped_choice[2] = 1
         self.current_player = self._increment_player(self.current_player)
 
     def get_legal_actions(self):

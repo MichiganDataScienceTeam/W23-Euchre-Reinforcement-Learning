@@ -11,7 +11,7 @@ class EuchreEnv(Env):
         self.name = "euchre"
 
         self.actions = ACTION_LIST
-        self.state_shape = [158]
+        self.state_shape = [213]
         super().__init__(config)
 
 
@@ -19,8 +19,8 @@ class EuchreEnv(Env):
         """Extract usable information from state."""
         def vec(s):
             # Return 'list' object
-            suit = {"C":[1,0,0,0], "D":[0,1,0,0], "H":[0,0,1,0], "S":[0,0,0,1]}
-            rank = {"9":9, "T":10, "J":11, "Q":12, "K":13, "A":14}
+            suit = {"C":[1,0,0,0,0], "D":[0,1,0,0,0], "H":[0,0,1,0,0], "S":[0,0,0,1,0], "X":[0,0,0,0,1]}
+            rank = {"9":9, "T":10, "J":11, "Q":12, "K":13, "A":14, "X":0}
             if len(s)==1:
                 return suit[s[0]]
             temp_list = suit[s[0]]
@@ -32,21 +32,21 @@ class EuchreEnv(Env):
 
         '''
         structure of obs 
-        suit = 4-1 Binary Feature | rank = 1 numerical Feature  
+        suit = 5-1 Binary Feature | rank = 1 numerical Feature  
         1. Dealer pos relative to Agent:        4-1 Binary Feature                          | 4
-        2. suit of trump:                       4-1 Binary Feature                          | 4
+        2. suit of trump:                       5-1 Binary Feature                          | 5
         3. Trump caller pos relative to Agent   4-1 Binary Feature                          | 4
-        4. Flipped Card                         4-1 Binary Feature and 1 numerical feature  | 5
-        5. What happened to the flipped card    2-1 Binary Feature                          | 2
-        5a. What card was discarded if Dealer   4-1 Binary Feature and 1 numerical feature  | 5
-        6. The led suit for the hand            4-1 Binary Feature                          | 4
-        7. Center Cards           (removed) 4x  4-1 Binary Feature and 1 numerical feature  | (20)
-        8. Agents Hand                      6x  4-1 Binary Feature and 1 numerical feature  | 30
-        9. Agents Play History              5x  4-1 Binary Feature and 1 numerical feature  | 25
-        8. Partners Play History            5x  4-1 Binary Feature and 1 numerical feature  | 25
-        9. Left Opponents Play History      5x  4-1 Binary Feature and 1 numerical feature  | 25
-        10. Right Opponents Play History    5x  4-1 Binary Feature and 1 numerical feature  | 25
-                                                                                    Total:    158
+        4. Flipped Card                         5-1 Binary Feature and 1 numerical feature  | 6
+        5. What happened to the flipped card    3-1 Binary Feature                          | 3
+        5a. What card was discarded if Dealer   5-1 Binary Feature and 1 numerical feature  | 6
+        6. The led suit for the hand            5-1 Binary Feature                          | 5
+        7. Center Cards                     4x  5-1 Binary Feature and 1 numerical feature  | 24
+        8. Agents Hand                      6x  5-1 Binary Feature and 1 numerical feature  | 36
+        9. Agents Play History              5x  5-1 Binary Feature and 1 numerical feature  | 30
+        8. Partners Play History            5x  5-1 Binary Feature and 1 numerical feature  | 30
+        9. Left Opponents Play History      5x  5-1 Binary Feature and 1 numerical feature  | 30
+        10. Right Opponents Play History    5x  5-1 Binary Feature and 1 numerical feature  | 30
+                                                                                    Total:    213
 
         Notes:
         Perhaps reduce size of player histories by 1 each because end of game redundancy
@@ -64,8 +64,8 @@ class EuchreEnv(Env):
             obs.append( vec(state['trump']) )
             obs.append( self._orderShuffler(curr_player_num,state['calling_actor']) )
         else: # No Trump called
-            obs.append( [-1, -1, -1, -1] )
-            obs.append( [-1, -1, -1, -1] )
+            obs.append( vec("X") )
+            obs.append( [0, 0, 0, 0] )
 
         '''4'''
         obs.append( vec(state['flipped']) )
@@ -75,24 +75,22 @@ class EuchreEnv(Env):
         if state['discarded_card'] is not None and state['dealer_actor'] == curr_player_num:
             obs.append( vec(state['discarded_card']) )
         else:
-            obs.append([-1, -1, -1, -1, -1])
+            obs.append(vec("XX"))
         '''6'''
         if state['lead_suit'] is not None:
             obs.append( vec(state['lead_suit']) )
         else:
-            obs.append( [-1,-1,-1,-1] )
+            obs.append( vec("X") )
 
         '''7'''
-        # Don't need this because it is already in the history
-        # for e in state['center']:
-        #     obs.append(vec(e.get_index()))
-        # no_cards = np.zeros(5*(4-len(state['center']))) - 1
-        # obs.append( no_cards.tolist() )
+        # Don't need this because it is already in the history?
+        for e in state['center']:
+            obs.append(vec(e.get_index()))
+        obs.append( (4-len(state['center']))*vec("XX") )
         '''8'''
         for e in state['hand']:
             obs.append(vec(e))
-        no_cards = np.zeros(5*(6-len(state['hand']))) - 1
-        obs.append( no_cards.tolist() )
+        obs.append( (6-len(state['hand']))*vec("XX") )
         '''
         Need to build 3 hands for each other player
         Note, their hands will grow as mine shrinks
@@ -103,8 +101,7 @@ class EuchreEnv(Env):
             rel_player_num = (i - curr_player_num + 4) % 4
             for e in state['played'][rel_player_num]:
                 obs.append(vec(e))
-            no_cards = np.zeros(5*(5-len(state['played'][rel_player_num]))) - 1
-            obs.append( no_cards.tolist() )
+            obs.append( (5-len(state['played'][rel_player_num]))*vec("XX") )
 
         state['obs'] = np.hstack(obs)
 
