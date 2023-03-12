@@ -117,7 +117,6 @@ class GridWorld:
         for i in range(length):
             if choice <= cu_list[i]:
                 return self.actions[i]
-        # sometimes runs if we have a rounding error, like the last elem in cu_list is 0.999998, and choice = 0.999999
         print('unsafe pick_action')
         return -1
 
@@ -190,9 +189,32 @@ def on_policy_td_control(env:GridWorld, num_episodes, epsilon, alpha, gamma):
     policy = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
     policy = init_e_soft_policy(policy, epsilon)
 
-    # TODO implement algorithm
-    # Hint to get Started: Look at env.reset_env() return value
+    for i in range(num_episodes):
+        # init S
+        s = env.reset_env()
+        # Choose A from S using policy derived from Q
+        a = env.pick_action(policy.loc[s,:].values)
 
+        states_seen = set()
+        states_seen.add(s)
+        done = False
+        while not done: # repeat for each step of episode
+                            # until S is terminal
+            # take action A, observe R, S prime
+            reward, s_prime, done = env.take_action(a)
+            states_seen.add(s_prime)
+            # chose A prime from S prime using policy derived from Q
+            a_prime = env.pick_action(policy.loc[s_prime,:].values)
+            # update Q(S,A)
+            part1 = q_func.loc[s,a]
+            part2 = q_func.loc[s_prime,a_prime]
+            q_func.loc[s,a] = part1 + alpha*(reward + gamma*part2 - part1)
+            # shift s,a pair
+            s = s_prime
+            a = a_prime
+        # end while
+        # update policy based on new q_func
+        policy = update_policy(q_func,policy,states_seen,epsilon)
     return policy, q_func
 
 
@@ -202,9 +224,9 @@ if __name__=="__main__":
     env = GridWorld(max_steps)
     
     num_iterations = 600
-    gamma = 0       # what to do?
-    epsilon = 0     # hmmm
-    alpha = 0       # pick me!!
+    gamma = 0.4
+    epsilon = 0.8
+    alpha = 0.4
     policy,q_func = on_policy_td_control(env, num_iterations, epsilon, alpha, gamma)
 
     # NOTE: We have high change to circle back to same place. How will gamma and alpha values effect our convergence?
