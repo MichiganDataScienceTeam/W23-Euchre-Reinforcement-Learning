@@ -1,28 +1,9 @@
 '''
 Gridworld RL
 
-Problem:
-Try and find the optimal policy to navigate towards
-the goal state:
-    . . . .
-    . . X .
-    . . G X
-    . X . .
-
-The locations as numbers are:
-    0  1  2  3
-    4  5  6  7
-    8  9  10 11
-    12 13 14 15
-
-TIP:
-    look in the init_reward_model and init_transition_matrix
-    functions for how to index into each of the respective dataframes
-    (use the loc func as well)
 '''
 
 import numpy as np
-import pandas as pd
 
 '''
 Global Variables
@@ -76,9 +57,11 @@ def grid_print(input,is_policy=False):
         if is_policy:
             for c in range(sz):
                 stuff = {0:"^",1:">",2:"v",3:"<"}
-                next_pos = np.argmax(input.loc[tup_2_st((r,c)),:].values)
+                next_pos = np.argmax(input[tup_2_st((r,c)),:])
+                neighs = get_neighbors(tup_2_st((r,c)))
+                beep = [True if next_pos == n else False for n in neighs]
                 if vals[grid[tup_2_st((r,c))]] == ".":
-                    print(stuff[next_pos],end=" ")
+                    print(stuff[np.argmax(beep)],end=" ")
                 else:
                     print(vals[grid[tup_2_st((r,c))]],end=" ")
         else:
@@ -88,6 +71,14 @@ def grid_print(input,is_policy=False):
     print()
     return
 
+def init_value_map():
+    v_map = np.zeros(num_states)
+    return v_map
+
+def init_reward_map():
+    r_map = np.zeros(num_states)
+    r_map[terminal_state] = 10 # get 10 reward 
+    return r_map
 
 def get_neighbors(state):
     '''
@@ -109,49 +100,19 @@ def get_neighbors(state):
         if res[i] in blocked_states:
             res[i] = state
     return res
-
-
-def init_value_map():
-    """
-    v_map: list of every possible state to fill with value
-
-    Note: this includes non-terminal states, but there values should always
-    be zero.
-    """
-    v_map = np.zeros(num_states)
-    return v_map
-
-
-def init_reward_map():
-    """
-    Rewards are a function of a (state, action) tuple  
-
-    reward map: Pandas dataframe with dims: (num_states[16], legal actions[4])
-
-    Note: this includes non-terminal states, but there values should always
-    be zero.
-    """
-    reward_map = pd.DataFrame(0, 
-                              index=non_terminal_states, 
-                              columns=actions)
-    reward_map.loc[9, "East"] = 10
-    reward_map.loc[14, "North"] = 10
-    return reward_map
-
-
-def init_policy(value):
+def init_policy():
     '''
     Create policy of size (num states, num actions)
 
-    this holds state -> action transitions  
+    this holds state -> action transitions
 
     Note: this includes non-terminal states, but there values should always
     be zero.
     '''
-    policy = pd.DataFrame(value, 
-                          index=range(num_states), 
+    policy = pd.DataFrame(value,
+                          index=range(num_states),
                           columns=actions)
- 
+
     return policy
 
 
@@ -171,7 +132,7 @@ def init_transition_dynamics():
     """
     # fill 0 for every (s,a) -> s_prime transition, even illegal moves
     all_pairs = [(s, a) for s in range(num_states) for a in actions]
-    transition_matrix = pd.DataFrame(0, 
+    transition_matrix = pd.DataFrame(0,
                               index=pd.MultiIndex.from_tuples(all_pairs),
                               columns=range(num_states))
 
@@ -213,7 +174,7 @@ def policy_evaluation(value_map, policy, rewards_model, transition_matrix, theta
             value_map[s] = value
             # delta value
             delta = max(delta, abs(v - value))
-        
+
         if delta < theta:
             break
 
@@ -233,12 +194,12 @@ def policy_improvement(value_map, policy, rewards_model, transition_matrix):
     for s in non_terminal_states:
         # skip a = pi(s) step
         # find argmax over all 4 actions to take when in s
-        
+
         # save that action in the new_policy
         pass
 
     # compare whole new_policy to old policy and set stable = False if not the same
-    
+
     return new_policy, stable
 
 
