@@ -62,7 +62,7 @@ def train(args):
         #new_agent = torch.load(model_path, map_location=device)
         #new_agent.set_device(device) # RL Agent
         #agents.append(new_agent)
-    
+
     env.set_agents(agents)
 
     # Start training
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_episodes',
         type=int,
-        default=50000,
+        default=150000,
     )
     parser.add_argument(
         '--num_eval_games',
@@ -146,12 +146,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--evaluate_every',
         type=int,
-        default=1000,
+        default=3000,
     )
     parser.add_argument(
         '--log_dir',
         type=str,
-        default='experiments/euchre_dqn_v2.3_result/',
+        default='experiments/euchre_dqn_v2.4_result/',
     )
 
     args = parser.parse_args()

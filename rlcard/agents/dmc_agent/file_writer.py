@@ -22,14 +22,14 @@ import os
 import time
 from typing import Dict
 
-import git
+# import git
 
 
 def gather_metadata() -> Dict:
     date_start = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     # gathering git metadata
     try:
-        repo = git.Repo(search_parent_directories=True)
+        repo = None # git.Repo(search_parent_directories=True)
         git_sha = repo.commit().hexsha
         git_data = dict(
             commit=git_sha,
@@ -37,7 +37,7 @@ def gather_metadata() -> Dict:
             is_dirty=repo.is_dirty(),
             path=repo.git_dir,
         )
-    except git.InvalidGitRepositoryError:
+    except: # git.InvalidGitRepositoryError
         git_data = None
     # gathering slurm metadata
     if 'SLURM_JOB_ID' in os.environ:

@@ -11,7 +11,13 @@ class EuchreEnv(Env):
         self.name = "euchre"
 
         self.actions = ACTION_LIST
-        self.state_shape = [213]
+        self.num_actions = len(ACTION_LIST)
+        # DQN Alg
+        # self.state_shape = [213]
+        # DMC Alg - 1 for each player
+        self.state_shape = [[213], [213], [213], [213]]
+
+        self.action_shape = [[self.num_actions] for _ in range(self.game.num_players)]
         super().__init__(config)
 
 
@@ -31,8 +37,8 @@ class EuchreEnv(Env):
         state['raw_legal_actions'] = self.game.get_legal_actions()
 
         '''
-        structure of obs 
-        suit = 5-1 Binary Feature | rank = 1 numerical Feature  
+        structure of obs
+        suit = 5-1 Binary Feature | rank = 1 numerical Feature
         1. Dealer pos relative to Agent:        4-1 Binary Feature                          | 4
         2. suit of trump:                       5-1 Binary Feature                          | 5
         3. Trump caller pos relative to Agent   4-1 Binary Feature                          | 4

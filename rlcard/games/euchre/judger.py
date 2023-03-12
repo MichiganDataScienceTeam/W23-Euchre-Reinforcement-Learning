@@ -69,9 +69,9 @@ class EuchreJudger(object):
         # elif team_1_score == 5:
         #     # Team 1 won 5 tricks
         #     return [0,2], 2
-
         # # Team 2 won 5 tricks
         # return [1,3], 2
+
         if team_1_score == 5:
             return [0,2], 2
         elif team_1_score == 0:
