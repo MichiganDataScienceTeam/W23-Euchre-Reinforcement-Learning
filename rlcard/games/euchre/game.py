@@ -36,6 +36,7 @@ class EuchreGame(object):
         for i in range(self.num_players):
             player = self.players[(i + 1 + self.dealer_player_id) % 4]
             self.dealer.deal_cards(player, 5)
+            player.sort_hand()
 
         self.flipped_card = self.dealer.flip_top_card()
         self.calling_player = -1
