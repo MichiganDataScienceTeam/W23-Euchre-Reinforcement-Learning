@@ -2,9 +2,10 @@
 from rlcard import make
 from rlcard import models
 from rlcard.models.euchre_rule_models import EuchreSimpleRuleAgent
+from rlcard.models.euchre_rule_models import EuchreAdvancedRuleAgent
 from rlcard.agents.human_agents.euchre_human_agent import EuchreHumanAgent
 
-a = EuchreSimpleRuleAgent()
+a = EuchreAdvancedRuleAgent()
 b = EuchreSimpleRuleAgent()
 c = EuchreSimpleRuleAgent()
 d = EuchreSimpleRuleAgent()

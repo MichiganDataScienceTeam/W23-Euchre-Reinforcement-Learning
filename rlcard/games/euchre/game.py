@@ -42,6 +42,7 @@ class EuchreGame(object):
         self.calling_player = -1
         # Options: {Avaliable=[1,0,0],TurnedDown=[0,1,0],PickedUp=[0,0,1]}
         self.flipped_choice = np.zeros(3)
+        self.flipped_choice[0] = 1
         self.history = [] # populate with game states
         self.center = [] 
         self.order = []
@@ -115,6 +116,7 @@ class EuchreGame(object):
         dealer_player = self.players[self.dealer_player_id]
         dealer_player.hand.append(self.flipped_card)
         self.trump = self.flipped_card.suit
+        self.flipped_choice[0] = 0
         self.flipped_choice[1] = 1
         self.calling_player = self.current_player
         self.current_player = self.dealer_player_id
@@ -165,6 +167,7 @@ class EuchreGame(object):
     def _perform_pass(self):
         if self.current_player == self.dealer_player_id:
             self.turned_down = self.flipped_card.suit
+            self.flipped_choice[0] = 0
             self.flipped_choice[2] = 1
         self.current_player = self._increment_player(self.current_player)
 
@@ -185,14 +188,17 @@ class EuchreGame(object):
         if self.lead_suit is None:
             return [card.get_index() for card in hand]
 
-        follow = [card.get_index() for card in hand if 
-                    (card.suit == self.lead_suit and not is_left(card, self.trump)) or 
-                    (is_left(card, self.lead_suit) and self.lead_suit == self.trump)]
+        follow = self.get_follow_cards(hand)
 
         if len(follow) > 0:
             return follow
         return [card.get_index() for card in hand]
 
+    def get_follow_cards(self, hand):
+        return [card.get_index() for card in hand if 
+                    (card.suit == self.lead_suit and not is_left(card, self.trump)) or 
+                    (is_left(card, self.lead_suit) and self.lead_suit == self.trump)]
+    
     def get_num_players(self):
         return self.num_players
 

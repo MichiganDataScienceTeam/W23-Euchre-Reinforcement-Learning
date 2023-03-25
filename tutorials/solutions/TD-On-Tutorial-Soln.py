@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import random
 import copy
+import time
 
 # Very similar to MC GridWorld, but with some changes
 
@@ -189,6 +190,9 @@ def on_policy_td_control(env:GridWorld, num_episodes, epsilon, alpha, gamma):
     policy = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
     policy = init_e_soft_policy(policy, epsilon)
 
+    print("initail policy")
+    env.grid_print(policy, True)
+    
     for i in range(num_episodes):
         # init S
         s = env.reset_env()
@@ -231,7 +235,6 @@ if __name__=="__main__":
 
     # NOTE: We have high change to circle back to same place. How will gamma and alpha values effect our convergence?
     # try setting both close to one, then setting one/both below 0.5
-
+    print("final policy")
     env.grid_print(policy,is_policy=True)
-    #print(q_func)
     print('done')

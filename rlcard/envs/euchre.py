@@ -63,12 +63,12 @@ class EuchreEnv(Env):
         curr_player_num = state['current_actor']
         # Save which player relative to you is the dealer
         '''1'''
-        obs.append( self._orderShuffler(curr_player_num,state['dealer_actor']) )
+        obs.append( self._order_shuffler(curr_player_num,state['dealer_actor']) )
 
         '''2 and 3'''
         if state['trump'] is not None:
             obs.append( vec(state['trump']) )
-            obs.append( self._orderShuffler(curr_player_num,state['calling_actor']) )
+            obs.append( self._order_shuffler(curr_player_num,state['calling_actor']) )
         else: # No Trump called
             obs.append( vec("X") )
             obs.append( [0, 0, 0, 0] )
@@ -113,7 +113,7 @@ class EuchreEnv(Env):
 
         return state
 
-    def _orderShuffler(self,curr_player_num, player_num):
+    def _order_shuffler(self,curr_player_num, player_num):
             '''
             Return encoding of player position relative to curr_player_num.
 
