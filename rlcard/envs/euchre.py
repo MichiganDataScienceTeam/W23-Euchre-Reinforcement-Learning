@@ -13,7 +13,7 @@ class EuchreEnv(Env):
         self.actions = ACTION_LIST
         self.num_actions = len(ACTION_LIST)
         # DQN Alg
-        self.state_shape = [213]
+        self.state_shape = [217]
         # DMC Alg - 1 for each player
         # self.state_shape = [[213], [213], [213], [213]]
 
