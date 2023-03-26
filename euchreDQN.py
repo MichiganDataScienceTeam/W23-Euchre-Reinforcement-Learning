@@ -21,7 +21,7 @@ def train(args):
 
     # Check whether gpu is available
     device = get_device()
-        
+
     # Seed numpy, torch, random
     set_seed(args.seed)
 
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_episodes',
         type=int,
-        default=150000,
+        default=50000,
     )
     parser.add_argument(
         '--num_eval_games',
@@ -146,12 +146,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--evaluate_every',
         type=int,
-        default=3000,
+        default=5000,
     )
     parser.add_argument(
         '--log_dir',
         type=str,
-        default='experiments/euchre_dqn_v2.5_result/',
+        default='experiments/euchre_dqn_v2.6_result/',
     )
 
     args = parser.parse_args()

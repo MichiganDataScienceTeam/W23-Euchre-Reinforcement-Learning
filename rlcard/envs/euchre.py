@@ -13,16 +13,15 @@ class EuchreEnv(Env):
         self.actions = ACTION_LIST
         self.num_actions = len(ACTION_LIST)
         # DQN Alg
-        # self.state_shape = [213]
+        self.state_shape = [213]
         # DMC Alg - 1 for each player
-        self.state_shape = [[213], [213], [213], [213]]
+        # self.state_shape = [[213], [213], [213], [213]]
 
         self.action_shape = [[self.num_actions] for _ in range(self.game.num_players)]
         super().__init__(config)
 
-
     def _extract_state(self, state):
-        """Extract usable information from state."""
+        # Extract usable information from state.
         def vec(s):
             # Return 'list' object
             suit = {"C":[1,0,0,0,0], "D":[0,1,0,0,0], "H":[0,0,1,0,0], "S":[0,0,0,1,0], "X":[0,0,0,0,1]}
@@ -46,13 +45,14 @@ class EuchreEnv(Env):
         5. What happened to the flipped card    3-1 Binary Feature                          | 3
         5a. What card was discarded if Dealer   5-1 Binary Feature and 1 numerical feature  | 6
         6. The led suit for the hand            5-1 Binary Feature                          | 5
+        6a. Who played the first card           4-1 Binary Feature                          | 4
         7. Center Cards                     4x  5-1 Binary Feature and 1 numerical feature  | 24
         8. Agents Hand                      6x  5-1 Binary Feature and 1 numerical feature  | 36
         9. Agents Play History              5x  5-1 Binary Feature and 1 numerical feature  | 30
         8. Partners Play History            5x  5-1 Binary Feature and 1 numerical feature  | 30
         9. Left Opponents Play History      5x  5-1 Binary Feature and 1 numerical feature  | 30
         10. Right Opponents Play History    5x  5-1 Binary Feature and 1 numerical feature  | 30
-                                                                                    Total:    213
+                                                                                    Total:    217
 
         Notes:
         Perhaps reduce size of player histories by 1 each because end of game redundancy
@@ -87,6 +87,10 @@ class EuchreEnv(Env):
             obs.append( vec(state['lead_suit']) )
         else:
             obs.append( vec("X") )
+        if state['order']:
+            obs.append( self._order_shuffler(curr_player_num, state['order'][0]))
+        else:
+            obs.append([0, 0, 0, 0])
 
         '''7'''
         # Don't need this because it is already in the history?
@@ -103,8 +107,8 @@ class EuchreEnv(Env):
         Because their 'hand' represents which cards I've seen them play
         '''
         '''9 10 11'''
-        for i in range(0,4):
-            rel_player_num = (i - curr_player_num + 4) % 4
+        for i in range(curr_player_num, curr_player_num+4):
+            rel_player_num = (i - curr_player_num) % 4
             for e in state['played'][rel_player_num]:
                 obs.append(vec(e))
             obs.append( (5-len(state['played'][rel_player_num]))*vec("XX") )
@@ -112,6 +116,74 @@ class EuchreEnv(Env):
         state['obs'] = np.hstack(obs)
 
         return state
+    
+    """
+    def _extract_state(self, state):
+        '''
+        structure of obs
+        1. flipped card (24 options)                            | 24
+        2. state of flipped card (picked up/turned down/open)   | 3
+        3. my hand (24 options)                                 | 24
+        4. center cards (24 options)                            | 24
+        5. my history(24 options)                               | 24
+        6. partner history (24 options)                         | 24
+        7. left history (24 options)                            | 24
+        8. right history (24 options)                           | 24
+        --
+        9. what is trump (4 options)                            | 4
+        10. Who is dealer relative to me (4 options)            | 4
+        11. Who called relative to me (4 options)               | 4
+        12. who led this current hand                           | 4
+        13. what was discarded if dealer                        | 24
+                                                        Total:    
+
+        Notes:
+        Perhaps reduce size of player histories by 1 each because end of game redundancy
+        Possibly add discraded card to obs structure
+        '''
+        def encode_cards(arr: np.array, cards:list):
+            for c in cards:
+                spot = ACTION_SPACE[c] - 6
+                arr[spot] = 1
+            return arr
+
+        state['legal_actions'] = self._get_legal_actions()
+        state['raw_legal_actions'] = self.game.get_legal_actions()
+        obs = []
+        curr_player_num = state['current_actor']
+
+        # 1 - flipped card
+        if state['flipped'] is not None:
+            temp = encode_cards(np.zeros(24), [state['flipped']])
+        obs.append(temp)
+
+        # 2 - state of flipped card
+        obs.append(state['flipped_choice'])
+
+        # 3 - my hand
+        temp = encode_cards(np.zeros(24), state['hand'])
+        obs.append(temp)
+
+        # 4 - center cards
+        temp = state['center_cards']
+
+        # 5,6,7,8 all player histories
+        for i in range(0,4):
+            rel_player = (i + curr_player_num + 4) % 4
+            temp = state['played'][rel_player]
+            if (rel_player == 0 and 
+               curr_player_num == state['dealer_actor'] and 
+               state['discarded_card'] is not None):
+                temp.append(state['discarded_card'])
+            temp = encode_cards(np.zeros(24), temp)
+            obs.append(temp)
+        
+        # 9 - what is trump
+
+
+        state['obs'] = np.hstack(obs)
+        return state
+    """
 
     def _order_shuffler(self,curr_player_num, player_num):
             '''
@@ -135,6 +207,9 @@ class EuchreEnv(Env):
 
             Also, it's important to remember who was the dealer. As the dealer has an information advantage.
             '''
+            def encode_cards(cards: list):
+                arr = np.zeroes()
+                return arr
             bin_encode = [0,0,0,0]
             adjusted_num = (player_num - curr_player_num + 4) % 4
             bin_encode[adjusted_num] = 1

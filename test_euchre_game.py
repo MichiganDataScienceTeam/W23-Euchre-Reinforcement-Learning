@@ -43,7 +43,7 @@ class TestEuchreGame(unittest.TestCase):
                    'DK','HQ','CJ','SJ',
                    'HT','CQ','SQ','DT',
                    'H9','CK','SK','DQ']
-        
+
         for action in actions:
             game.step(action)
 
