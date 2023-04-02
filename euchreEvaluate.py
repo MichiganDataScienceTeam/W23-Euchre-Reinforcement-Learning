@@ -14,6 +14,7 @@ from rlcard.utils import (
     set_seed,
     tournament,
 )
+from rlcard.models.euchre_rule_models import EuchreSimpleRuleAgent
 
 def load_model(model_path, env=None, position=None, device=None):
     if os.path.isfile(model_path):  # Torch model
@@ -70,10 +71,10 @@ if __name__ == '__main__':
         '--models',
         nargs='*',
         default=[
-            'experiments/dmc_result/euchre/0_1308800.pth',
-            'random',
-            'experiments/dmc_result/euchre/0_1308800.pth',
-            'random'
+            'experiments/euchre_dqn_v2.6_result/model.pth',
+            'euchre-simple-rule',
+            'experiments/euchre_dqn_v2.6_result/model.pth',
+            'euchre-simple-rule'
         ],
     )
     parser.add_argument(

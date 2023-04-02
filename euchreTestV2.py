@@ -12,16 +12,10 @@ d = EuchreSimpleRuleAgent()
 
 agents = [a,b,c,d]
 config = {
-        'allow_step_back': False,
-        'allow_raw_data': False,
-        'single_agent_mode' : False,
-        'active_player' : 0,
-        'record_action' : False,
-        'seed': None,
-        'env_num': 1,
+        'allow_step_back': False, 'allow_raw_data': False, 'single_agent_mode' : False, 'active_player' : 0,
+        'record_action' : False, 'seed': None, 'env_num': 1,
         # Custom Flags
-        'custom_deck': None,
-        'custom_dealer_id': None
+        'custom_deck': None, 'custom_dealer_id': None
         }
 
 euchre_game = make("euchre", config=config)

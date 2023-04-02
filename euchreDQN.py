@@ -136,7 +136,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_episodes',
         type=int,
-        default=50000,
+        default=150000,
     )
     parser.add_argument(
         '--num_eval_games',

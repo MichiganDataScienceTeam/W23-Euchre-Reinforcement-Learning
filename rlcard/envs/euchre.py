@@ -87,10 +87,10 @@ class EuchreEnv(Env):
             obs.append( vec(state['lead_suit']) )
         else:
             obs.append( vec("X") )
-        if state['order']:
-            obs.append( self._order_shuffler(curr_player_num, state['order'][0]))
-        else:
-            obs.append([0, 0, 0, 0])
+        # if state['order']:
+        #     obs.append( self._order_shuffler(curr_player_num, state['order'][0]))
+        # else:
+        #     obs.append([0, 0, 0, 0])
 
         '''7'''
         # Don't need this because it is already in the history?

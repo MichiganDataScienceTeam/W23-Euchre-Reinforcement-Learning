@@ -75,19 +75,32 @@ def init_euchre_deck(customDeck=None):
     Returns:
         (list): A list of Card object
     '''
+    def find_card(card:str):
+        ind = -1
+        for c in res:
+            ind += 1
+            if c.get_index() == card:
+                return ind
+        return ind
     
     res = [Card(suit, rank) for suit in SUIT_LIST for rank in NON_TRUMP]
+    res_inds = list(range(0,len(res)))
+
     if customDeck is not None:
+        for card in customDeck:
+            if card != "XX":
+                res_inds.remove(find_card(card))
+
         result = []
         for card in customDeck:
             if card == 'XX':
-                random_card_ind = random.randrange(0,len(res))
+                random_card_ind = random.choice(res_inds)
                 result.append(res[random_card_ind])
-                res.pop(random_card_ind)
+                res_inds.remove(random_card_ind)
             else:
                 is_valid_card(card)
-                result.append(Card(card[0],card[1]))
-                res.remove(Card(card[0],card[1]))
+                c = res[find_card(card)]
+                result.append(c)
         res = result
     return res
 

@@ -52,7 +52,7 @@ class TestEuchreGame(unittest.TestCase):
                    ["DJ","HA","DK","DT","DQ"],
                    ["HJ","HK","HQ","HT","H9"],
                    ["C9","CT","CJ","CQ","CK"]]
-        
+
         self.assertEqual(game.played,history)
         self.assertEqual(game.score, {0:0, 1:1, 2:4, 3:0})
         payoffs = game.get_payoffs()
