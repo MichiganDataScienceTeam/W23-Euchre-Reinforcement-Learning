@@ -1,3 +1,4 @@
+from typing import List
 from rlcard.envs import Env
 from rlcard.games.euchre import Game
 from rlcard.games.euchre.utils import ACTION_SPACE, ACTION_LIST, LEFT, NON_TRUMP, SUIT_LIST, is_left
@@ -11,7 +12,7 @@ class EuchreEnv(Env):
         self.name = "euchre"
 
         self.actions = ACTION_LIST
-        self.state_shape = [253]
+        self.state_shape = [366]
         super().__init__(config)
     
 
@@ -133,24 +134,60 @@ class EuchreEnv(Env):
         # where can a card be?
         # played by opponent 0, played by opponent 1, played by partner, played by me, in center, my hand (can play?), flipped, discarded, taken by other person (possibly discarded), unknown
         # 9*24 = 216
+        def encode_game_state():
+            pick_or_pass = not state['trump_called'] and np.sum(state['flipped_choice']) == 0
+            select_second_suit = not state['trump_called'] and state['turned_down'] is not None
+            lead_or_play = state['trump_called'] and state['discarded_card'] is not None
+            leading = lead_or_play and state['lead_suit'] is None
+            dealer = state['current_actor'] == state['dealer_actor']
+            we_called = state['calling_actor'] in {state['current_actor'], (state['current_actor'] + 2) % 4}
+            return [pick_or_pass, select_second_suit, lead_or_play, leading, dealer, we_called]
+
+
+        def encode_card_state(card: str, can_follow_suit: bool, lead_or_play: bool) -> List[int]:
+            raw = raw_encode(card)
+            
+            played_op0, played_op1, played_partner, played_me, center, my_hand, playable, flipped, discarded, picked_up = range(10)
+            flags = [0] * 10
+            flags[played_me] = card in state['played'][state['current_actor']]
+            flags[played_op0] = card in state['played'][(state['current_actor'] + 1) % 4]
+            flags[played_partner] = card in state['played'][(state['current_actor'] + 2) % 4]
+            flags[played_op1] = card in state['played'][(state['current_actor'] + 3) % 4]
+            flags[center] = card in state['center']
+            flags[my_hand] = card in state['hand']
+            flags[playable] = lead_or_play and \
+               ((can_follow_suit and card_effective_suit(card, state['trump']) == state['trump']) or \
+                (not can_follow_suit))
+            flags[flipped] = state['flipped'] == card
+            flags[discarded] = state['discarded_card'] == card
+            flags[picked_up] = state['turned_down'] is None and state['flipped'] == card
+
+            return raw + flags
+
 
         # which stage of the game can we be in?
         # pick/pass, call second suit, discard, lead, play
 
-        state['obs'] = \
-            list(encode_card(state['flipped'], state['trump'], None, state['turned_down'])) + [ # 4
-            1 if state['turned_down'] is not None else 0, # 1
-            1 if state['calling_actor'] % 2 == state['current_actor'] % 2 else 0, # did my team call trump?
-            len(state['hand']), # 1
-        ] + encode_cards(state['hand'], 6, state['trump'], state['lead_suit'], state['turned_down']) \
-          + self._orderShuffler(state['current_actor'], state['dealer_actor']) \
-          + pad_to([int(can_play(c, state['trump'], state['lead_suit'])) for c in state['hand']], 6) \
-          + [1 if not state['turned_down'] and state['current_actor'] == state['dealer_actor'] else 0] \
-          + encode_cards(opponent_cards, 2, state['trump'], state['lead_suit'], state['turned_down']) \
-          + encode_cards(partner_cards, 1, state['trump'], state['lead_suit'], state['turned_down']) \
-          + encode_cards(opponent_played, 10, state['trump'], None, state['turned_down']) \
-          + encode_cards(state['played'][(state['current_actor'] + 2) % 4], 5, state['trump'], None, state['turned_down']) \
-          + encode_cards(state['played'][state['current_actor']], 5, state['trump'], None, state['turned_down']) \
+        # state['obs'] = \
+        #     list(encode_card(state['flipped'], state['trump'], None, state['turned_down'])) + [ # 4
+        #     1 if state['turned_down'] is not None else 0, # 1
+        #     1 if state['calling_actor'] % 2 == state['current_actor'] % 2 else 0, # did my team call trump?
+        #     len(state['hand']), # 1
+        # ] + encode_cards(state['hand'], 6, state['trump'], state['lead_suit'], state['turned_down']) \
+        #   + self._orderShuffler(state['current_actor'], state['dealer_actor']) \
+        #   + pad_to([int(can_play(c, state['trump'], state['lead_suit'])) for c in state['hand']], 6) \
+        #   + [1 if not state['turned_down'] and state['current_actor'] == state['dealer_actor'] else 0] \
+        #   + encode_cards(opponent_cards, 2, state['trump'], state['lead_suit'], state['turned_down']) \
+        #   + encode_cards(partner_cards, 1, state['trump'], state['lead_suit'], state['turned_down']) \
+        #   + encode_cards(opponent_played, 10, state['trump'], None, state['turned_down']) \
+        #   + encode_cards(state['played'][(state['current_actor'] + 2) % 4], 5, state['trump'], None, state['turned_down']) \
+        #   + encode_cards(state['played'][state['current_actor']], 5, state['trump'], None, state['turned_down']) \
+
+        game_state = encode_game_state()
+        all_cards = [suit + rank for suit in SUIT_LIST for rank in NON_TRUMP]
+        can_follow_suit = game_state[2] and any(card_effective_suit(card, state['trump']) == state['trump'] for card in state['hand'])
+        state['obs'] = np.array(game_state +\
+            [encoding for card in all_cards for encoding in encode_card_state(card, can_follow_suit, game_state[2])])
 
         return state
 
