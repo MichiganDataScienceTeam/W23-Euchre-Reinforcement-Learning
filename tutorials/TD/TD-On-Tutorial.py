@@ -136,6 +136,7 @@ class GridWorld:
         action_index = self.actions.index(action)
         next_state = possible_next_spaces[action_index]
 
+        prev_state = self.curr_state
         self.curr_state = next_state
         self.num_steps += 1
         reward = self.rewards[next_state]
@@ -143,6 +144,10 @@ class GridWorld:
         done = False
         if self.curr_state == 10 or self.num_steps > self.max_steps:
             done = True
+
+        # Michael's addition: penalize going out of bounds
+        if prev_state == next_state:
+            reward = -2
 
         return reward, next_state, done
 
@@ -185,13 +190,30 @@ def update_policy(q_func, policy, states_seen, epsilon):
                 policy.loc[state, direction] = (epsilon/len(policy.columns))
     return policy
 
-def on_policy_td_control(env:GridWorld, num_episodes, epsilon, alpha, gamma):
+def on_policy_td_control(env:GridWorld,num_episodes,epsilon,alpha,gamma, max_tasks):
     q_func = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
     policy = pd.DataFrame(0,index=[i for i in range(env.num_states)],columns=env.actions)
     policy = init_e_soft_policy(policy, epsilon)
 
     # TODO implement algorithm
     # Hint to get Started: Look at env.reset_env() return value
+    for i_episode in range(num_episodes):
+        print('episode', i_episode, end=': ')
+        states_seen = set()
+        state = env.reset_env()
+        action = env.pick_action(policy.iloc[state])
+        states_seen.add(state)
+        for i in range(max_tasks):
+            reward, state_next, done = env.take_action(action)
+            states_seen.add(state_next)
+            print(state, action, reward, state_next, end='; ')
+            action_next = env.pick_action(policy.iloc[state_next])
+            q_func.loc[state, action] += alpha * (reward + gamma * q_func.loc[state_next, action_next]) - q_func.loc[state, action]
+            if done:
+                break
+            state, action = state_next, action_next
+        policy = update_policy(q_func, policy, states_seen, epsilon)
+        print()
 
     return policy, q_func
 
@@ -202,14 +224,17 @@ if __name__=="__main__":
     env = GridWorld(max_steps)
     
     num_iterations = 600
-    gamma = 0       # what to do?
-    epsilon = 0     # hmmm
-    alpha = 0       # pick me!!
-    policy,q_func = on_policy_td_control(env, num_iterations, epsilon, alpha, gamma)
+    gamma = 1      # what to do?
+    epsilon = 0.5     # hmmm
+    alpha = 0.15       # pick me!!
+    # gamma = 0.4
+    # epsilon = 0.8
+    # alpha = 0.4
+    policy,q_func = on_policy_td_control(env,num_iterations,epsilon,alpha, gamma, max_steps)
 
     # NOTE: We have high change to circle back to same place. How will gamma and alpha values effect our convergence?
     # try setting both close to one, then setting one/both below 0.5
 
     env.grid_print(policy,is_policy=True)
-    #print(q_func)
+    print(q_func)
     print('done')

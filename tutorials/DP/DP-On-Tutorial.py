@@ -4,6 +4,7 @@ Gridworld RL
 '''
 
 import numpy as np
+import pandas as pd
 
 '''
 Global Variables
@@ -17,7 +18,7 @@ terminal_reward = 10
 blocked_states = [6,11,13]
 non_terminal_states = [0,1,2,3,4,5,7,8,9,12,14,15]
 grid = None
-gamma = 0.8
+gamma = 0.9
 
 '''
 Global Functions - Do not Touch
@@ -144,40 +145,43 @@ def init_transition_dynamics():
             transition_matrix[neighbors[i]].loc[(s,actions[i])] = 1
 
     return transition_matrix
+def init_transitions():
+    q_map = np.zeros((num_states, num_states))
+    for i in range(num_states):
+        neighbors = [n for n in get_neighbors(i) if n != i]
+        for n in neighbors:
+            q_map[(i, n)] = 1 / len(neighbors)
+    return q_map
+
 
 '''
 TODO Section Below
 '''
 
-def policy_evaluation(value_map, policy, rewards_model, transition_matrix, theta):
+
+def policy_evaluation(value_map, policy, rewards, theta):
     '''
     Implements step 2 in algorithm
 
     Returns: new value_map
     '''
+    iterations = 0
     while True:
-        delta = 0
-
-        for s in non_terminal_states:
-            # temp store value of V(s)
-            v = value_map[s]
-            # calculate new value for V(s)
-            value = 0
-            for s_prime in range(num_states):
-                for a in actions:
-                    reward_from_action = rewards_model.loc[s, a]
-                    policy_action_prob = policy.loc[s,a]
-                    transition_prob = transition_matrix[s_prime].loc[(s,a)]
-                    overall_prob = policy_action_prob * transition_prob
-                    value += overall_prob * (reward_from_action + gamma * value_map[s_prime])
-            # save that value
-            value_map[s] = value
-            # delta value
-            delta = max(delta, abs(v - value))
-
-        if delta < theta:
+        improvement = 0
+        for s in range(num_states):
+            v_s = value_map[s]
+            value_map[s] = 0
+            for sp in get_neighbors(s):
+                if sp != s:
+                    prob = policy[s, sp]
+                    value_map[s] += prob * (rewards[sp] + gamma * value_map[sp])
+            improvement = max(improvement, abs(v_s - value_map[s]))
+        grid_print(value_map)
+        iterations += 1
+        if improvement < theta or iterations > 1000:
             break
 
+    print('iterations', iterations)
     return value_map
 
 
@@ -205,10 +209,14 @@ def policy_improvement(value_map, policy, rewards_model, transition_matrix):
 
 if __name__=="__main__":
     grid = initialize_grid1() # Exists only to support print statements
-    rewards_model = init_reward_map() # Never changes
-    transition_matrix = init_transition_dynamics() # Never changes
-    print(transition_matrix)
-    theta = 1e-4
+    rewards = init_reward_map() # Never changes
+    theta = 1e-8
+    # --
+    value_map = init_value_map()
+    policy = init_transitions()
+    grid_print(policy_evaluation(value_map, policy, rewards, theta))
+    print("Policy Iteration: Dynamic Programming")
+    
 
     # --
     value_map = init_value_map()
