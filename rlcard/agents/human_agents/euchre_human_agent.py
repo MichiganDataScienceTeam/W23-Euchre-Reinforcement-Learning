@@ -26,6 +26,7 @@ class EuchreHumanAgent(object):
             elif state['flipped_choice'][0] == 1:
                 self._print_dealer(state['dealer_actor'], state['current_actor'])
             print("Your Hand:",state['hand'])
+            print("Top kitty card: ", state['flipped'])
         
 
         # The state saves the actual object of the cards in state['center']... not very readable

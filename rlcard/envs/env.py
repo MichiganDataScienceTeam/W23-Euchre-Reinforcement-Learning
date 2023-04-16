@@ -1,4 +1,6 @@
 from rlcard.utils import *
+from rlcard.games.euchre.utils import ACTION_LIST
+
 
 class Env(object):
     '''
@@ -6,6 +8,7 @@ class Env(object):
     we should base on this class and implement as many functions
     as we can.
     '''
+
     def __init__(self, config):
         ''' Initialize the environment
 
@@ -30,7 +33,8 @@ class Env(object):
         # Game specific configurations
         # Currently only support blackjack、limit-holdem、no-limit-holdem
         # TODO support game configurations for all the games
-        supported_envs = ['blackjack', 'leduc-holdem', 'limit-holdem', 'no-limit-holdem']
+        supported_envs = ['blackjack', 'leduc-holdem',
+                          'limit-holdem', 'no-limit-holdem']
         if self.name in supported_envs:
             _game_config = self.default_game_config.copy()
             for key in config:
@@ -47,7 +51,6 @@ class Env(object):
 
         # Set random seed, default is None
         self.seed(config['seed'])
-
 
     def reset(self):
         ''' Start a new game
@@ -97,7 +100,8 @@ class Env(object):
         Note: Error will be raised if step back from the root node.
         '''
         if not self.allow_step_back:
-            raise Exception('Step back is off. To use step_back, please set allow_step_back=True in rlcard.make')
+            raise Exception(
+                'Step back is off. To use step_back, please set allow_step_back=True in rlcard.make')
 
         if not self.game.step_back():
             return False
@@ -117,12 +121,13 @@ class Env(object):
         '''
         self.agents = agents
 
-    def run(self, is_training=False):
+    def run(self, is_training=False, show_cards=False):
         '''
         Run a complete game, either for evaluation or training RL agent.
 
         Args:
             is_training (boolean): True if for training purpose.
+            show_cards (boolean): True if we should print everyone's cards and decisions on each step.
 
         Returns:
             (tuple) Tuple containing:
@@ -146,7 +151,12 @@ class Env(object):
                 action = self.agents[player_id].step(state)
 
             # Environment steps
-            next_state, next_player_id = self.step(action, self.agents[player_id].use_raw)
+            if show_cards:
+                player_hand = self.game.get_state(player_id)['hand']
+                print(
+                    f'Player {player_id}, with hand {player_hand}, chooses action {ACTION_LIST[action]}')
+            next_state, next_player_id = self.step(
+                action, self.agents[player_id].use_raw)
             # Save action
             trajectories[player_id].append(action)
 
@@ -183,7 +193,6 @@ class Env(object):
             (int): The id of the current player
         '''
         return self.game.get_player_id()
-
 
     def get_state(self, player_id):
         ''' Get the state given player id
