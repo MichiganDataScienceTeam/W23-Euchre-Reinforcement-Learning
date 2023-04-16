@@ -71,9 +71,9 @@ if __name__ == '__main__':
         '--models',
         nargs='*',
         default=[
-            'experiments/euchre_dqn_v2.6_result/model.pth',
+            'experiments/euchre_dqn_v2.5_result/model.pth',
             'euchre-simple-rule',
-            'experiments/euchre_dqn_v2.6_result/model.pth',
+            'experiments/euchre_dqn_v2.5_result/model.pth',
             'euchre-simple-rule'
         ],
     )

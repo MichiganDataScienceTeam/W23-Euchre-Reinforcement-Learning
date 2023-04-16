@@ -16,59 +16,45 @@ c = EuchreSimpleRuleAgent()
 d = EuchreSimpleRuleAgent()
 
 agents = [a,b,c,d]
-
-def euchre_test(config_in):
-    num_episodes = 1000
-
-    euchre_game = make("euchre", config=config_in)
-    euchre_game.set_agents(agents)
-
-    actions_taken = {}
-    action_to_hand = {}
-    for _ in range(num_episodes):
-        # setup game
-        euchre_game.reset()
-        # make player 1 pass, make player 2 call, dealer discard C9
-        euchre_game.step(ACTION_SPACE["pass"])
-        euchre_game.step(ACTION_SPACE["pick"])
-        next_state, next_player = euchre_game.step(ACTION_SPACE["discard-C9"])
-        # observe probabilities for player 1
-        taken = a.step(next_state)
-        if taken not in actions_taken.keys():
-            actions_taken[taken] = 1
-        else:
-            actions_taken[taken] += 1
-        
-        if taken not in action_to_hand.keys():
-            action_to_hand[taken] = [euchre_game.get_state(0)['hand']]
-        else:
-            action_to_hand[taken].append(euchre_game.get_state(0)['hand'])
-    # print taken action dict
-    tups = []
-    for key, val in actions_taken.items():
-        tups.append( (ACTION_LIST[key], val/num_episodes*100) )
-
-    tups = sorted(tups, key= lambda x: (x[1], x[0]), reverse=True)
-
-    for t in tups:
-        print(f"{t[0]} taken {t[1]:.2f}%")
-
-    for key, val in action_to_hand.items():
-        print(ACTION_LIST[key])
-        print(val)
-
-
-
-config1 = {
+config = {
         'allow_step_back': False, 'allow_raw_data': False, 'single_agent_mode' : False, 'active_player' : 0,
         'record_action' : False, 'seed': None, 'env_num': 1,
         # Custom Flags
-        'custom_deck': ["SA","HJ","XX","XX","XX",
-                        "CA","CK","CQ","CT","CJ",
-                        "DA","XX","XX","XX","SJ",
-                        "HA","XX","XX","XX","XX",
-                        "C9","SQ","ST","S9"],
+        'custom_deck': ["HA","XX","XX","XX","XX",
+                        "DA","DK","DQ","DT","DJ",
+                        "SA","XX","XX","XX","HJ",
+                        "CA","XX","XX","XX","XX",
+                        "D9","HQ","HT","H9"],
         'custom_dealer_id': 3
         }
 
-euchre_test(config1)
+num_episodes = 1000
+
+euchre_game = make("euchre", config=config)
+euchre_game.set_agents(agents)
+
+actions_taken = {}
+actions_seen = {}
+for _ in range(num_episodes):
+    # setup game
+    euchre_game.reset()
+    # make player 1 pass, make player 2 call, dealer discard C9
+    euchre_game.step(ACTION_SPACE["pass"])
+    euchre_game.step(ACTION_SPACE["pick"])
+    next_state, next_player = euchre_game.step(ACTION_SPACE["discard-D9"])
+    # observe probabilities for player 1
+    taken = a.step(next_state)
+    actions_taken[taken] = actions_taken.get(taken, 0) + 1
+    possible_actions = euchre_game.game.players[0].hand # RL agent's hand
+    for _, card in enumerate(possible_actions):
+        actions_seen[card.get_index()] = actions_seen.get(card.get_index(), 0) + 1
+
+# print taken action dict
+tups = []
+for key, val in actions_taken.items():
+    tups.append( (ACTION_LIST[key], val/actions_seen[ACTION_LIST[key]]*100) )
+
+tups = sorted(tups, key= lambda x: (x[1], x[0]), reverse=True)
+
+for t in tups:
+    print(f"{t[0]} taken {t[1]:.2f}%")
