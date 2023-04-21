@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from rlcard.games.euchre.utils import LEFT, NON_TRUMP, ACTION_SPACE
+from rlcard.games.euchre.utils import LEFT, NON_TRUMP, ACTION_SPACE, make_elegent
 
 class EuchreHumanAgent(object):
     
@@ -14,36 +14,36 @@ class EuchreHumanAgent(object):
         self.use_raw = False
     
     def step(self,state):
-        print("---")
         # Right Now it gives you the option to select any action you want
         legal = state['raw_legal_actions']
-        if not self.mute_state:
-            print(state)
-        else:
-            if np.sum(state['flipped_choice']) == 0:
-                self._print_dealer(state['dealer_actor'], state['current_actor'])
-                print("Center Card:",state['flipped'])
-            elif state['flipped_choice'][0] == 1:
-                self._print_dealer(state['dealer_actor'], state['current_actor'])
-            print("Your Hand:",state['hand'])
-            print("Top kitty card: ", state['flipped'])
+        # if not self.mute_state:
+        #     print(state)
+        # else:
+        #     if np.sum(state['flipped_choice']) == 0:
+        #         self._print_dealer(state['dealer_actor'], state['current_actor'])
+        #         print("Center Card:",state['flipped'])
+        #     elif state['flipped_choice'][0] == 1:
+        #         self._print_dealer(state['dealer_actor'], state['current_actor'])
+        #     # print("Your Hand:",state['hand'])
+        #     print("Top kitty card: ", state['flipped'])
         
 
         # The state saves the actual object of the cards in state['center']... not very readable
-        played=[]
-        for card in state['center']:
-            played.append(card.get_index())
-        if len(played) != 0:
-            print("Center Cards: ",played)
-        else:
-            print("Your Lead")
+        # played=[]
+        # for card in state['center']:
+        #     played.append(card.get_index())
+        # if len(played) != 0:
+        #     print("Center Cards: ",played)
+        # else:
+        #     print("Your Lead")
         
         #print(f"I am player #{state['current_actor']}")
-        print("Your Legal Actions:",legal)
-        act = input("Select Legal Action: ")
-        while act not in legal:
-            act = input("Select Legal Action: ")
-        return ACTION_SPACE[act]
+        print("Your Legal Actions:",[make_elegent(l) for l in legal])
+        print("                   ", *[f"   {i}  " for i in range(len(legal))])
+        act = input("Select Legal Action: by Index: ")
+        while act not in [str(i) for i in range(len(legal))]:
+            act = input("Select Legal Action by Index: ")
+        return ACTION_SPACE[legal[int(act)]]
 
     # Below was pasted from euchre_rule_agent
 

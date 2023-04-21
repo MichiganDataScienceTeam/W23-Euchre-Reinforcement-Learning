@@ -41,9 +41,15 @@ config = {
     'custom_dealer_id': None
 }
 
-test = EuchreEnv(config)
-test.set_agents(agents)
-trajectories, payoffs = test.run(is_training=False, show_cards=True)
-t = trajectories[0]
+for i in range(100):
+    test = EuchreEnv(config)
+    test.set_agents(agents)
+    trajectories, payoffs = test.run(is_training=False, show_cards=True)
+    t = trajectories[0]
 
-print(payoffs)
+    print(payoffs)
+    if payoffs[0] > 0:
+        print("You Won!")
+    else:
+        print("You Lost!")
+    print("Press Enter to Play Next Game")

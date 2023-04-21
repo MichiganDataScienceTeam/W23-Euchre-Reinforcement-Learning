@@ -1,4 +1,5 @@
 from rlcard.games.base import Card
+from rlcard.utils import elegent_form
 import random
 
 LEFT = {'D': 'HJ', 'H': 'DJ', 'C':'SJ', 'S':'CJ'}
@@ -65,6 +66,8 @@ ACTION_LIST = list(ACTION_SPACE.keys())
 NON_TRUMP = ['9', 'T', 'J', 'Q', 'K', 'A']  # this order matters
 SUIT_LIST = ['S', 'H', 'D', 'C']
 
+ELEGENT_SUITS = {'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣'}
+
 def init_euchre_deck(customDeck=None):
     ''' Initialize a standard deck of 52 cards
     Parameters:
@@ -117,3 +120,6 @@ def is_valid_card(card):
     assert(len(card)==2)
     assert(card[0] in SUIT_LIST)
     assert(card[1] in NON_TRUMP)
+
+def make_elegent(string: str):
+    return ''.join(ELEGENT_SUITS.get(ch, ch) for ch in string).replace('T', '10')

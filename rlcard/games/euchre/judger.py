@@ -54,31 +54,31 @@ class EuchreJudger(object):
         team_1_score = game.score[0] + game.score[2]
         team_1_called = (game.calling_player == 0 or game.calling_player == 2)
 
-        # if team_1_score >= 3 and team_1_called:
-        #     # Team 1 called and won 3-4 tricks
-        #     return [0,2], 1
-        # elif team_1_score < 3 and not team_1_called:
-        #     # Team 2 called and won 3-4 tricks
-        #     return [1,3], 1
-        # elif team_1_score < 3 and team_1_called:
-        #     # Team 1 called and got euchred
-        #     return [1,3], 2
-        # elif team_1_score >= 3 and not team_1_called:
-        #     # Team 2 called and got euchred
-        #     return [0,2], 2
-        # elif team_1_score == 5:
-        #     # Team 1 won 5 tricks
-        #     return [0,2], 2
-        # # Team 2 won 5 tricks
-        # return [1,3], 2
-
-        if team_1_score == 5:
-            return [0,2], 2
-        elif team_1_score == 0:
-            return [1,3], 2
-        elif team_1_score >= 3:
+        if team_1_score >= 3 and team_1_called:
+            # Team 1 called and won 3-4 tricks
             return [0,2], 1
-        return [1,3], 1
+        elif team_1_score < 3 and not team_1_called:
+            # Team 2 called and won 3-4 tricks
+            return [1,3], 1
+        elif team_1_score < 3 and team_1_called:
+            # Team 1 called and got euchred
+            return [1,3], 2
+        elif team_1_score >= 3 and not team_1_called:
+            # Team 2 called and got euchred
+            return [0,2], 2
+        elif team_1_score == 5:
+            # Team 1 won 5 tricks
+            return [0,2], 2
+        # Team 2 won 5 tricks
+        return [1,3], 2
+
+        # if team_1_score == 5:
+        #     return [0,2], 2
+        # elif team_1_score == 0:
+        #     return [1,3], 2
+        # elif team_1_score >= 3:
+        #     return [0,2], 1
+        # return [1,3], 1
 
     def _get_player_order(self, leader):
         return [(i+leader)%4 for i in range(4)]

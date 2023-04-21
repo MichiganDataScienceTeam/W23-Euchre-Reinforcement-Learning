@@ -1,6 +1,8 @@
+from os import system
+
 from rlcard.envs import Env
 from rlcard.games.euchre import Game
-from rlcard.games.euchre.utils import ACTION_SPACE, ACTION_LIST
+from rlcard.games.euchre.utils import ACTION_SPACE, ACTION_LIST, make_elegent
 from collections import OrderedDict
 import numpy as np
 
@@ -225,3 +227,74 @@ class EuchreEnv(Env):
 
     def get_payoffs(self):
         return self.game.get_payoffs()
+    
+    def _print_state(self):
+        """
+        Print state of game.
+
+        state is a dict that contains:
+        actions: list of strings to print representing their actions
+        0-3: either "__" or Card string
+        """
+        curr_player = self.game.current_player
+        # Data
+        trump = f"{make_elegent(self.game.trump)}   " if self.game.trump else "None"
+        dealer_id = self.game.dealer_player_id
+
+        p0_hand = [make_elegent(a.get_index()) for a in self.game.players[0].hand]
+        p0_hand_1 = p0_hand[0:3]
+        p0_hand_2 = [] if len(p0_hand) < 4 else p0_hand[3:]
+        p0_hand_1_len = len(str(p0_hand_1))
+        p0_hand_2_len = len(str(p0_hand_2))
+        p1_hand = [make_elegent(a.get_index()) for a in self.game.players[1].hand]
+        p2_hand = [make_elegent(a.get_index()) for a in self.game.players[2].hand]
+        p2_hand_1 = p2_hand[0:3]
+        p2_hand_2 = "" if len(p2_hand) < 4 else p2_hand[3:]
+        p3_hand = [make_elegent(a.get_index()) for a in self.game.players[3].hand]
+
+        c_c = make_elegent(self.game.flipped_card.get_index()) if self.game.flipped_choice[0] == 1 else "  "
+        pts_0_2 = self.game.score[0] + self.game.score[2]
+        pts_1_3 = self.game.score[1] + self.game.score[3]
+        # Print Data
+        de = ["      "] * 4
+        de[dealer_id] = "Dealer"
+        c_cs = ["__"]*4
+        for player, card in zip(*(self.game.order,self.game.center)):
+            c_cs[player] = make_elegent(card.get_index())
+        lead = ["    "] * 4
+        if len(self.game.order) == 0:
+            if c_c != "  " or len(self.game.players[curr_player].hand) == 6:
+                lead[curr_player] = "Acts"
+            else:
+                lead[curr_player] = "Lead"
+        else:
+            lead[self.game.order[0]] = "Lead"
+        # Clear Previous Output
+        system("clear")
+        # Print to Screen
+        print("======================Playing Euchre===================")
+        print("   Points    Trump                                     ")
+        print(f"  You:  {pts_0_2}    {trump}         {p1_hand}                      ")
+        print(f"  Opps: {pts_1_3}         {de[1]} 1: RL Bot                     ")
+        print(f"                           {lead[1]}                        ")
+        print(f"                            {c_cs[1]}                          ")
+        print(f"   {de[0]}                                   {de[2]}     ")
+        print(f"   0: You {lead[0]}       {c_cs[0]}     {c_c}     {c_cs[2]}    {lead[2]} 2: RL Bot  ")
+        print(f" {p0_hand_1}{' '*(40-p0_hand_1_len)}{p2_hand_1}     ")
+        print(f" {p0_hand_2}{' '*(27-p0_hand_2_len)}{c_cs[3]}           {p2_hand_2}               ")
+        print(f"                           {lead[3]}                        ")
+        print(f"                  {de[3]} 3: RL Bot                     ")
+        print(f"                        {p3_hand}                     ")
+        print("=======================Status=========================")
+        if trump == "None":
+            print("Trump is not set")
+        else:
+            print(f"{trump.strip()} is Trump")
+        if len(self.game.center) == 0 and "Lead" in lead:
+            print(f"Player {curr_player} Leads")
+        print(f"Player {curr_player} has to chose between:")
+        print(f"{[make_elegent(a) for a in self.game.get_legal_actions()]}")
+        if curr_player == 0:
+            print("=======================Your Turn======================")
+        else:
+            print("===================Enter To Continue===================")

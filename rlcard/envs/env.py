@@ -1,5 +1,5 @@
 from rlcard.utils import *
-from rlcard.games.euchre.utils import ACTION_LIST
+from rlcard.games.euchre.utils import ACTION_LIST, make_elegent
 
 
 class Env(object):
@@ -144,6 +144,11 @@ class Env(object):
         # Loop to play the game
         trajectories[player_id].append(state)
         while not self.is_over():
+            # Display to User if Neccesary
+            if show_cards:
+                self._print_state()
+                if player_id != 0:
+                    input("")
             # Agent plays
             if not is_training:
                 action, _ = self.agents[player_id].eval_step(state)
@@ -152,9 +157,10 @@ class Env(object):
 
             # Environment steps
             if show_cards:
-                player_hand = self.game.get_state(player_id)['hand']
+                self._print_state()
                 print(
-                    f'Player {player_id}, with hand {player_hand}, chooses action {ACTION_LIST[action]}')
+                    f'Player {player_id} chooses action {make_elegent(ACTION_LIST[action])}', end="")
+                input("")
             next_state, next_player_id = self.step(
                 action, self.agents[player_id].use_raw)
             # Save action
@@ -271,4 +277,7 @@ class Env(object):
 
         Note: Must be implemented in the child class.
         '''
+        raise NotImplementedError
+    
+    def _print_state(self):
         raise NotImplementedError
